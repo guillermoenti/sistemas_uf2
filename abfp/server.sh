@@ -37,4 +37,11 @@ if [ "$HANDSHAKE" != "THIS_IS_MY_CLASSROOM" ]; then
 
 fi
 
+echo "(8) Response:"
+sleep 1
+echo "YES_IT_IS" | nc -q 1 $IP_CLIENT $PORT 
+
+echo "(9) Listening:"
+FILE_NAME=`nc -l -p $PORT`
+
 exit 0

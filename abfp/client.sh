@@ -7,7 +7,6 @@ IP_SERVER="127.0.0.1"
 echo "Client ABFP"
 
 echo "(2) Sending Headers"
-sleep 1
 echo "ABFP $IP_CLIENT" | nc -q 1 $IP_SERVER $PORT
 
 echo "(3) Listening: $PORT"
