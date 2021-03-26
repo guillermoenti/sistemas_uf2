@@ -44,4 +44,34 @@ echo "YES_IT_IS" | nc -q 1 $IP_CLIENT $PORT
 echo "(9) Listening:"
 FILE_NAME=`nc -l -p $PORT`
 
+PREFIX=`echo $FILE_NAME | cut -d " " -f 1`
+NAME_MD5=`echo $FILE_NAME | cut -d " " -f 3`
+FILE_NAME=`echo $FILE_NAME | cut -d " " -f 2`
+
+if [ "$PREFIX" != "FILE_NAME" ]; then
+	echo "ERROR: Prefijo FILE_NAME incorrecto"
+	
+	sleep 1
+	echo "KO_FILE_NAME" | nc -q 1 $IP_CLIENT $PORT
+
+	exit 1
+fi
+
+TEMP_MD5=`echo $NAME | md5sum | cut -d " " -f 1`
+
+if [ "$NAME_MD5" != "$TEMP_MD5" ]; then
+	
+	echo "ERRORç: MD5 Incorrecto"
+
+	sleep 1
+	echo "KO_FILE_NAME_MD5" | nc -q 1 $IP_CLIENT $PORT
+	exit 1
+fi
+
+sleep 1
+echo "OK_FILE_NAME" | nc -q 1 $IP_CLIENT $PORT
+
+DATA=`nc -l -p $PORT
+echo $DATA
+
 exit 0
