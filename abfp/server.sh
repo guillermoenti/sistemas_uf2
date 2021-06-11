@@ -1,77 +1,123 @@
 #!/bin/bash
 
-PROTOCOL="ABFP"
 PORT=2021
+OUTPUT_PATH="salida_server/"
 
 echo "(0) Server ABFP"
 
-echo "(1) Listening: $PORT"
+echo "(1) Listening $PORT"
+
 HEADER=`nc -l -p $PORT`
 
 echo "TEST! $HEADER"
+
 PREFIX=`echo $HEADER | cut -d " " -f 1`
 IP_CLIENT=`echo $HEADER | cut -d " " -f 2`
 
-echo "(4) Response" 
-if [ "$PREFIX" != $PROTOCOL ]; then
+echo "(4) RESPONSE"
 
-	echo "Header error"
+if [ "$PREFIX" != "ABFP" ]; then
+
+	echo "Error en la cabecera"
+
 	sleep 1
 	echo "KO_CONN" | nc -q 1 $IP_CLIENT $PORT
-	exit 1
 
+	exit 1
 fi
 
 sleep 1
 echo "OK_CONN" | nc -q 1 $IP_CLIENT $PORT
 
-echo "(5) Listening:"
+echo  "(5) LISTEN"
+
 HANDSHAKE=`nc -l -p $PORT`
 
-echo "TEST! $HANDSHAKE"
 if [ "$HANDSHAKE" != "THIS_IS_MY_CLASSROOM" ]; then
+	echo "ERROR: Handshake incorrecto"
 
-	echo "Handshake error"
 	sleep 1
 	echo "KO_HANDSHAKE" | nc -q 1 $IP_CLIENT $PORT
 
+	exit 2
 fi
 
-echo "(8) Response:"
+echo "(8a) RESPONSE"
 sleep 1
-echo "YES_IT_IS" | nc -q 1 $IP_CLIENT $PORT 
+echo "YES_IT_IS" | nc -q 1 $IP_CLIENT $PORT
 
-echo "(9) Listening:"
-FILE_NAME=`nc -l -p $PORT`
 
-PREFIX=`echo $FILE_NAME | cut -d " " -f 1`
-NAME_MD5=`echo $FILE_NAME | cut -d " " -f 3`
-FILE_NAME=`echo $FILE_NAME | cut -d " " -f 2`
+#LEER NUM ARCHIVOS A RECIBIR
 
-if [ "$PREFIX" != "FILE_NAME" ]; then
-	echo "ERROR: Prefijo FILE_NAME incorrecto"
-	
-	sleep 1
-	echo "KO_FILE_NAME" | nc -q 1 $IP_CLIENT $PORT
+echo "(8b) LISTEN NUM_FILES"
+NUM_FILES=`nc -l -p $PORT`
 
-	exit 1
-fi
+PREFIX=`echo $NUM_FILES | cut -d " " -f 1`
+NUM=`echo $NUM_FILES | cut -d " " -f 2`
 
-TEMP_MD5=`echo $NAME | md5sum | cut -d " " -f 1`
-
-if [ "$NAME_MD5" != "$TEMP_MD5" ]; then
-	
-	echo "ERRORç: MD5 Incorrecto"
+if [ "$PREFIX" != "NUM_FILES" ]; then
+	echo "ERROR: Prefijo NUM_FILES incorrecto"
 
 	sleep 1
-	echo "KO_FILE_NAME_MD5" | nc -q 1 $IP_CLIENT $PORT
-	exit 1
+	echo "KO_NUM_FILES" | nc -q 1 $IP_CLIENT $PORT
+
+	exit 2
 fi
 
 sleep 1
-echo "OK_FILE_NAME" | nc -q 1 $IP_CLIENT $PORT
+echo "OK_NUM_FILES" | nc -q 1 $IP_CLIENT $PORT
 
-DATA=`nc -l -p $PORT
-echo $DATA
+echo "NUM_FILES: $NUM"
+
+#BUCLE
+
+for NUMBER in `seq $NUM`; do
+
+	echo "(9) LISTEN FILE_NAME"
+
+	FILE_NAME=`nc -l -p $PORT`
+
+
+	PREFIX=`echo $FILE_NAME | cut -d " " -f 1`
+	NAME=`echo $FILE_NAME | cut -d " " -f 2`
+	NAME_MD5=`echo $FILE_NAME | cut -d " " -f 3`
+
+	if [ "$PREFIX" != "FILE_NAME" ]; then
+		echo "ERROR: Prefijo FILE_NAME incorrecto"
+
+		sleep 1
+		echo "KO_FILE_NAME" | nc -q 1 $IP_CLIENT $PORT
+
+		exit 3
+	fi
+
+	TEMP_MD5=`echo $NAME | md5sum | cut -d " " -f 1`
+
+	if [ "$NAME_MD5" != "$TEMP_MD5" ]; then
+		echo "ERROR: MD5 Incorrecto"
+
+		sleep 1
+		echo "KO_FILE_NAME_MD5" | nc -q 1 $IP_CLIENT $PORT
+
+		exit 4
+	fi
+
+	echo "(12) RESPONSE OK_FILE_NAME"
+	sleep 1
+	echo "OK_FILE_NAME" | nc -q 1 $IP_CLIENT $PORT
+
+	echo $OUTPUT_PATH$NAME
+
+	nc -l -p $PORT > $OUTPUT_PATH$NAME
+done
+
+sleep 1
+echo "OK_DATA" | nc -q 1 $IP_CLIENT $PORT
+
+GOODBYE=`nc -l -p $PORT`
+if [ "$GOODBYE" != "ABFP GOODBYE" ]; then
+	echo "Error: wrong goodbye"
+	exit 5
+fi
 
 exit 0
