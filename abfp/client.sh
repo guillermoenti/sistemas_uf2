@@ -34,10 +34,8 @@ echo "(7a) LISTEN"
 RESPONSE=`nc -l -p $PORT`
 if [ "$RESPONSE" != "YES_IT_IS" ]; then
 	echo "ERROR: Handshake incorrecto"
-	exit 1
+	exit 2
 fi
-
-#ENVIAR NUM ARCHIVOS
 
 echo "(7b) SENDING NUM_FILES"
 sleep 1
@@ -51,11 +49,8 @@ RESPONSE=`nc -l -p $PORT`
 
 if [ "$RESPONSE" != "OK_NUM_FILES" ]; then
 	echo "ERROR: Prefijo NUM_FILES incorrecto"
-	exit 2
+	exit 3
 fi
-
-#BUCLE
-
 
 for FILE_NAME in `ls $INPUT_PATH`; do
 
@@ -71,7 +66,7 @@ for FILE_NAME in `ls $INPUT_PATH`; do
 	if [ "$RESPONSE" != "OK_FILE_NAME" ]; then
 		echo "ERROR: envío de archivo fallido"
 
-		exit 2
+		exit 4
 	fi
 
 	sleep 1
@@ -79,9 +74,12 @@ for FILE_NAME in `ls $INPUT_PATH`; do
 done
 
 RESPONSE=`nc -l -p $PORT`
+
+echo "(Extra) Despedida"
+
 if [ "$RESPONSE" != "OK_DATA" ]; then
-	echo "Error: Data sended failed"
-	exit 4
+	echo "ERROR: Data sended failed"
+	exit 5
 fi
 
 sleep 1

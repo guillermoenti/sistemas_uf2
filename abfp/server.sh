@@ -47,8 +47,6 @@ sleep 1
 echo "YES_IT_IS" | nc -q 1 $IP_CLIENT $PORT
 
 
-#LEER NUM ARCHIVOS A RECIBIR
-
 echo "(8b) LISTEN NUM_FILES"
 NUM_FILES=`nc -l -p $PORT`
 
@@ -61,15 +59,13 @@ if [ "$PREFIX" != "NUM_FILES" ]; then
 	sleep 1
 	echo "KO_NUM_FILES" | nc -q 1 $IP_CLIENT $PORT
 
-	exit 2
+	exit 3
 fi
 
 sleep 1
 echo "OK_NUM_FILES" | nc -q 1 $IP_CLIENT $PORT
 
 echo "NUM_FILES: $NUM"
-
-#BUCLE
 
 for NUMBER in `seq $NUM`; do
 
@@ -88,7 +84,7 @@ for NUMBER in `seq $NUM`; do
 		sleep 1
 		echo "KO_FILE_NAME" | nc -q 1 $IP_CLIENT $PORT
 
-		exit 3
+		exit 4
 	fi
 
 	TEMP_MD5=`echo $NAME | md5sum | cut -d " " -f 1`
@@ -99,7 +95,7 @@ for NUMBER in `seq $NUM`; do
 		sleep 1
 		echo "KO_FILE_NAME_MD5" | nc -q 1 $IP_CLIENT $PORT
 
-		exit 4
+		exit 5
 	fi
 
 	echo "(12) RESPONSE OK_FILE_NAME"
@@ -114,10 +110,12 @@ done
 sleep 1
 echo "OK_DATA" | nc -q 1 $IP_CLIENT $PORT
 
+
+echo "(Extra) DESPEDIDA"
 GOODBYE=`nc -l -p $PORT`
 if [ "$GOODBYE" != "ABFP GOODBYE" ]; then
 	echo "Error: wrong goodbye"
-	exit 5
+	exit 6
 fi
 
 exit 0
