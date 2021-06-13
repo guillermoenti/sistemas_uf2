@@ -102,9 +102,23 @@ for NUMBER in `seq $NUM`; do
 	sleep 1
 	echo "OK_FILE_NAME" | nc -q 1 $IP_CLIENT $PORT
 
+	TEMP_MD5=`nc -l -p $PORT`
+	
+	FILE=`nc -l -p $PORT`
+	FILE_MD5=`echo $FILE | md5sum | cut -d " " -f 1`
+
+	if [ "$TEMP_MD5" != "$FILE_MD5" ]; then
+		echo "ERROR: MD5 Incorrecto"
+
+		sleep 1
+		echo "KO_FILE_MD5" | nc -q 1 $IP_CLIENT $PORT
+
+		exit 6
+	fi
+
 	echo $OUTPUT_PATH$NAME
 
-	nc -l -p $PORT > $OUTPUT_PATH$NAME
+	echo "$FILE" > $OUTPUT_PATH$NAME
 done
 
 sleep 1
@@ -115,7 +129,7 @@ echo "(Extra) DESPEDIDA"
 GOODBYE=`nc -l -p $PORT`
 if [ "$GOODBYE" != "ABFP GOODBYE" ]; then
 	echo "Error: wrong goodbye"
-	exit 6
+	exit 7
 fi
 
 exit 0
